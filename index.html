@@ -11,12 +11,12 @@
     <!-- 2. Librería para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- 3. React y Babel para que el código funcione en el navegador -->
+    <!-- 3. React y Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 4. Iconos Lucide (Versión global) -->
+    <!-- 4. Iconos Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Fuentes Bonitas -->
@@ -31,20 +31,27 @@
             .print-bg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
         
-        /* Clase crítica para asegurar tamaño exacto A4 sin desbordes */
+        /* CORRECCIÓN: Altura reducida a 296mm para evitar página en blanco extra */
         .pdf-page-size {
             width: 210mm;
-            height: 297mm;
-            overflow: hidden; /* Cortar cualquier cosa que se salga */
+            height: 296mm; 
+            overflow: hidden; 
             background-color: white;
             margin: 0 auto;
             page-break-after: always;
             position: relative;
         }
 
+        /* CORRECCIÓN: Romper palabras largas en dedicatoria */
+        .break-word-fix {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+        }
+
         img { max-width: 100%; }
         
-        /* Animación suave */
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -54,13 +61,11 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- 5. COMPONENTES Y LÓGICA (Todo en uno) ---
         const { useState, useEffect } = React;
 
-        // Helper para usar iconos de Lucide en este entorno simple
+        // Helper para Iconos
         const Icon = ({ name, size = 24, className = "" }) => {
             const iconRef = React.useRef(null);
-            
             useEffect(() => {
                 if (window.lucide) {
                     window.lucide.createIcons({
@@ -76,11 +81,9 @@
                     });
                 }
             }, [name, size, className]);
-
             return <i data-lucide={name} ref={iconRef}></i>;
         };
 
-        // Icono especial SVG inline
         const AnchorIcon = (props) => (
             <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>
         );
@@ -104,7 +107,6 @@
 
             const [book, setBook] = useState(null);
 
-            // Efecto para recargar iconos cuando cambia la vista
             useEffect(() => {
                 if(window.lucide) window.lucide.createIcons();
             });
@@ -117,13 +119,12 @@
             const handleSubmit = (e) => {
                 e.preventDefault();
                 if (!formData.childName || !formData.missionObject || !formData.missionAction) {
-                    alert("Por favor completa los campos principales de la historia.");
+                    alert("Por favor completa los campos principales.");
                     return;
                 }
                 const story = generateProfessionalStory();
                 setBook(story);
                 setStep('preview');
-                // Forzar renderizado de iconos después del cambio de estado
                 setTimeout(() => window.lucide && window.lucide.createIcons(), 100);
             };
 
@@ -131,17 +132,16 @@
                 setIsGenerating(true);
                 const element = document.getElementById('book-content');
                 
-                // Configuración optimizada para evitar cortes
                 const opt = {
                     margin: 0, 
                     filename: `Cuento-${formData.childName}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { 
-                        scale: 2, // Buena calidad
+                        scale: 2, 
                         useCORS: true, 
                         logging: false,
                         scrollY: 0,
-                        windowWidth: 800 // Ancho fijo para renderizado consistente
+                        windowWidth: 800 
                     },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
@@ -150,7 +150,7 @@
                     await html2pdf().set(opt).from(element).save();
                 } catch (err) {
                     console.error("Error PDF:", err);
-                    alert("Error generando PDF automático. Usando impresión estándar.");
+                    alert("Error generando PDF. Intenta imprimir manualmente.");
                     window.print();
                 } finally {
                     setIsGenerating(false);
@@ -161,36 +161,40 @@
                 const { childName, childGender, age, companionType, companionName, theme, missionAction, missionArticle, missionObject, dedication } = formData;
                 
                 const o_a = childGender === 'a' ? 'a' : 'o'; 
-                const el_la = childGender === 'a' ? 'la' : 'el'; 
                 const un_una = childGender === 'a' ? 'una' : 'un';
                 const nino_nina = childGender === 'a' ? 'niña' : 'niño';
                 
                 const fullObject = `${missionArticle} ${missionObject}`;
 
+                // IMÁGENES ACTUALIZADAS: Más coloridas e infantiles (Ilustraciones/Vectores)
                 const themes = {
                     bosque: {
-                        coverImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop",
+                        coverImage: "https://images.unsplash.com/photo-1596277685603-0c3f0b4d445c?q=80&w=2560&auto=format&fit=crop", // Ilustración bosque
                         color: "text-green-900",
                         bg: "bg-green-50",
-                        iconName: "Map"
+                        iconName: "Map",
+                        accent: "border-green-800"
                     },
                     espacio: {
-                        coverImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2560&auto=format&fit=crop",
+                        coverImage: "https://images.unsplash.com/photo-1614728853911-c91807d93425?q=80&w=2560&auto=format&fit=crop", // Ilustración espacial colorida
                         color: "text-indigo-900",
                         bg: "bg-slate-50",
-                        iconName: "Rocket"
+                        iconName: "Rocket",
+                        accent: "border-indigo-900"
                     },
                     fantasia: {
-                        coverImage: "https://images.unsplash.com/photo-1599739291060-4578e77dac5d?q=80&w=2560&auto=format&fit=crop",
+                        coverImage: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2560&auto=format&fit=crop", // Fantasía colorida
                         color: "text-purple-900",
                         bg: "bg-purple-50",
-                        iconName: "Castle"
+                        iconName: "Castle",
+                        accent: "border-purple-800"
                     },
                     oceano: {
-                        coverImage: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?q=80&w=2560&auto=format&fit=crop",
+                        coverImage: "https://images.unsplash.com/photo-1560215758-c07a3f5b721e?q=80&w=2560&auto=format&fit=crop", // Pez colorido
                         color: "text-blue-900",
                         bg: "bg-blue-50",
-                        iconName: "Anchor"
+                        iconName: "Anchor",
+                        accent: "border-blue-800"
                     }
                 };
 
@@ -198,42 +202,42 @@
 
                 const pages = [
                     {
-                        title: "El Llamado de la Aventura",
-                        text: `En un lugar donde los sueños se mezclan con la realidad, vivía ${un_una} ${nino_nina} de ${age} años llamad${o_a} ${childName}. No era ${un_una} ${nino_nina} común; tenía el don de ver la magia donde otros solo veían lo normal. Una mañana, mientras el viento susurraba secretos, ${childName} encontró una carta antigua. La carta decía que el mundo necesitaba a alguien valiente para una misión única: ${missionAction.toLowerCase()} ${fullObject}.`,
-                        instruction: `Dibuja a ${childName} leyendo la carta misteriosa con cara de sorpresa.`
+                        title: "El Llamado",
+                        text: `En un lugar donde los sueños brillan, vivía ${un_una} ${nino_nina} de ${age} años llamad${o_a} ${childName}. Tenía el don de ver la magia. Una mañana, ${childName} encontró una carta misteriosa. La carta decía que el mundo necesitaba a alguien valiente para: ${missionAction.toLowerCase()} ${fullObject}.`,
+                        instruction: `Dibuja a ${childName} leyendo la carta con cara de sorpresa.`
                     },
                     {
-                        title: "Un Aliado Inesperado",
-                        text: `${childName} sabía que no podía hacer esto sol${o_a}. De repente, entre las sombras, apareció una figura. ¡Era un ${companionType}! Pero no cualquiera, este tenía una mirada inteligente. —"Me llamo ${companionName}", dijo la criatura con voz amable. —"He estado esperando a alguien digno para buscar ${fullObject}. ¿Vamos juntos?". ${childName} asintió con entusiasmo.`,
-                        instruction: `Dibuja al ${companionType} llamado ${companionName} saludando a ${childName}.`
+                        title: "El Aliado",
+                        text: `${childName} sabía que no podía ir sol${o_a}. De pronto, apareció una figura simpática. ¡Era un ${companionType}! —"Me llamo ${companionName}", dijo sonriendo. —"He esperado a alguien digno para buscar ${fullObject}. ¿Vamos?". ${childName} dijo que sí.`,
+                        instruction: `Dibuja al ${companionType} llamado ${companionName} saludando.`
                     },
                     {
-                        title: "Hacia lo Desconocido",
-                        text: `Juntos, emprendieron el viaje. El camino hacia ${fullObject} no era fácil. Tuvieron que cruzar paisajes increíbles donde los colores eran más brillantes de lo normal. ${companionName}, el ${companionType}, usaba su olfato y sabiduría para guiarles, mientras ${childName} usaba su ingenio para resolver los acertijos del sendero.`,
-                        instruction: "Dibuja el paisaje fantástico por donde caminan (árboles gigantes, estrellas o castillos)."
+                        title: "El Viaje",
+                        text: `Juntos, comenzaron la aventura. El camino hacia ${fullObject} era increíble, lleno de colores brillantes. ${companionName}, el ${companionType}, guiaba el camino, mientras ${childName} resolvía los misterios del sendero mágico.`,
+                        instruction: "Dibuja el paisaje fantástico (árboles de colores o estrellas)."
                     },
                     {
-                        title: "La Gran Prueba",
-                        text: `Justo cuando creían estar cerca, un obstáculo gigante les bloqueó el paso. Parecía imposible continuar. ${childName} sintió miedo por un segundo. "¿Y si no soy lo suficientemente fuerte?", pensó. Pero ${companionName} le recordó: "La verdadera fuerza no está en los músculos, sino en el corazón".`,
-                        instruction: "Dibuja el obstáculo gigante (una montaña, un monstruo o un río ancho)."
+                        title: "El Obstáculo",
+                        text: `¡Oh no! Un obstáculo gigante les bloqueó el paso. Parecía imposible pasar. ${childName} sintió un poco de miedo. Pero ${companionName} le dijo: "La verdadera fuerza está en tu corazón, no en tus músculos".`,
+                        instruction: "Dibuja el obstáculo gigante (una montaña o un río ancho)."
                     },
                     {
-                        title: "El Poder de Creer",
-                        text: `${childName} cerró los ojos y recordó por qué había comenzado esta aventura: quería ${missionAction.toLowerCase()} ${fullObject} más que nada en el mundo. Con un grito de valentía, superó el obstáculo. La magia reaccionó a su coraje, abriendo el camino final.`,
-                        instruction: `Dibuja a ${childName} usando su magia o fuerza para superar el problema.`
+                        title: "Valentía",
+                        text: `${childName} cerró los ojos y pensó en su misión: quería ${missionAction.toLowerCase()} ${fullObject}. Con un grito de valentía, usó su magia interior y el obstáculo desapareció. ¡El camino estaba libre!`,
+                        instruction: `Dibuja a ${childName} usando su magia para abrir el camino.`
                     },
                     {
-                        title: "Misión Cumplida",
-                        text: `¡Allí estaba! Frente a sus ojos brillaba ${fullObject}. Era más hermoso de lo que imaginaban. ${childName} y ${companionName} celebraron bailando de alegría. Habían logrado lo imposible gracias a su amistad y valentía.`,
+                        title: "¡Victoria!",
+                        text: `¡Allí estaba! Brillando frente a ellos se encontraba ${fullObject}. Era maravilloso. ${childName} y ${companionName} bailaron de felicidad. ¡Habían logrado la misión gracias a su gran amistad!`,
                         instruction: `¡Dibuja el momento en que encuentran ${fullObject}!`
                     }
                 ];
 
                 return {
                     title: `La Leyenda de ${childName}`,
-                    subtitle: `Y la búsqueda de ${fullObject}`,
+                    subtitle: `En busca de ${fullObject}`,
                     author: childName,
-                    dedication: dedication || `Para ${childName}, protagonista de su propia historia.`,
+                    dedication: dedication || `Para ${childName}, protagonista de esta historia.`,
                     style: currentTheme,
                     pages: pages
                 };
@@ -244,8 +248,8 @@
                     {step === 'form' && (
                         <div className="max-w-4xl mx-auto py-12 px-6 no-print fade-in">
                             <div className="text-center mb-12">
-                                <h1 className="text-5xl font-['Cinzel'] text-slate-900 mb-4">Editor de Cuentos Pro</h1>
-                                <p className="text-lg text-slate-600 font-['Lato']">Crea un libro real, diseñado para imprimir.</p>
+                                <h1 className="text-5xl font-['Cinzel'] text-slate-900 mb-4">Creador de Cuentos</h1>
+                                <p className="text-lg text-slate-600 font-['Lato']">Diseñado para imprimir y colorear.</p>
                             </div>
 
                             <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
@@ -255,7 +259,7 @@
                                         <span className="font-bold tracking-widest uppercase text-sm">Configuración</span>
                                     </div>
                                     <div className="flex gap-2 text-xs opacity-50">
-                                        <span>V 5.0 (PDF Fix)</span>
+                                        <span>V 6.0</span>
                                     </div>
                                 </div>
 
@@ -273,7 +277,7 @@
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Edad</label>
-                                                <input type="number" name="age" placeholder="Ej: 8" value={formData.age} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                                                <input type="number" name="age" placeholder="Ej: 6" value={formData.age} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
                                             </div>
                                         </div>
 
@@ -298,11 +302,11 @@
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Tipo de Criatura</label>
-                                                    <input required type="text" name="companionType" placeholder="Ej: Zorro" value={formData.companionType} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                                                    <input required type="text" name="companionType" placeholder="Ej: Dragón" value={formData.companionType} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre</label>
-                                                    <input required type="text" name="companionName" placeholder="Ej: Rusty" value={formData.companionName} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                                                    <input required type="text" name="companionName" placeholder="Ej: Chispas" value={formData.companionName} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
                                                 </div>
                                             </div>
                                         </div>
@@ -314,7 +318,7 @@
                                         </h3>
 
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Estilo Visual</label>
+                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Tema de Portada (Estilo Infantil)</label>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {['bosque', 'espacio', 'fantasia', 'oceano'].map(t => (
                                                     <button 
@@ -330,14 +334,14 @@
                                         </div>
 
                                         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                                            <label className="block text-xs font-bold uppercase text-yellow-800 mb-3">Construye la Misión</label>
+                                            <label className="block text-xs font-bold uppercase text-yellow-800 mb-3">La Misión</label>
                                             
                                             <div className="mb-4">
-                                                <label className="block text-xs text-slate-500 mb-1">1. ¿Qué acción realizarán? (Verbo)</label>
+                                                <label className="block text-xs text-slate-500 mb-1">1. Acción (Verbo)</label>
                                                 <input 
                                                     type="text" 
                                                     name="missionAction" 
-                                                    placeholder="Ej: Encontrar / Rescatar / Curar" 
+                                                    placeholder="Ej: Salvar / Encontrar" 
                                                     value={formData.missionAction} 
                                                     onChange={handleInputChange} 
                                                     className="w-full border-b-2 border-yellow-400 bg-white/50 py-2 px-3 focus:outline-none font-bold text-slate-900 rounded-t-md"
@@ -345,7 +349,7 @@
                                             </div>
 
                                             <div className="mb-2">
-                                                <label className="block text-xs text-slate-500 mb-1">2. ¿Cuál es el objetivo? (Artículo + Objeto)</label>
+                                                <label className="block text-xs text-slate-500 mb-1">2. Objetivo (Artículo + Cosa)</label>
                                                 <div className="flex">
                                                     <select
                                                         name="missionArticle"
@@ -363,22 +367,18 @@
                                                     <input 
                                                         type="text" 
                                                         name="missionObject" 
-                                                        placeholder="Ej: tesoro perdido" 
+                                                        placeholder="Ej: gato perdido" 
                                                         value={formData.missionObject} 
                                                         onChange={handleInputChange} 
                                                         className="flex-1 border-b-2 border-yellow-400 bg-white/50 py-2 px-3 focus:outline-none font-bold text-slate-900 rounded-tr-md"
                                                     />
                                                 </div>
                                             </div>
-
-                                            <p className="text-xs text-yellow-700 mt-3 italic text-center bg-yellow-100/50 p-2 rounded">
-                                                Se leerá: "Su misión es <strong>{formData.missionAction || '...'}</strong> <strong>{formData.missionArticle}</strong> <strong>{formData.missionObject || '...'}</strong>"
-                                            </p>
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Dedicatoria (Opcional)</label>
-                                            <textarea name="dedication" rows="2" placeholder="Para mi persona favorita..." value={formData.dedication} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Dedicatoria</label>
+                                            <textarea name="dedication" rows="2" placeholder="Escribe tu mensaje especial..." value={formData.dedication} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
                                         </div>
 
                                         <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-lg font-bold text-lg shadow-lg transform hover:-translate-y-1 transition flex items-center justify-center gap-3 mt-4">
@@ -396,17 +396,16 @@
                             
                             <div className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur border-b border-slate-200 p-4 flex justify-between items-center z-50 no-print shadow-sm">
                                 <button onClick={() => setStep('form')} className="text-slate-500 font-bold hover:text-slate-900 flex items-center gap-2 text-sm">
-                                    <Icon name="arrow-right" className="rotate-180" size={16} /> Editar Datos
+                                    <Icon name="arrow-right" className="rotate-180" size={16} /> Editar
                                 </button>
                                 <div className="flex items-center gap-4">
-                                    <span className="text-xs font-bold uppercase bg-slate-100 px-3 py-1 rounded text-slate-500">Vista Previa A4</span>
                                     <button 
                                         onClick={handleDownloadPDF} 
                                         disabled={isGenerating}
                                         className={`${isGenerating ? 'bg-slate-500' : 'bg-slate-900 hover:bg-slate-700'} text-white px-6 py-2 rounded-full font-bold transition flex items-center gap-2 shadow-lg`}
                                     >
                                         {isGenerating ? <Icon name="loader-2" className="animate-spin" size={18}/> : <Icon name="download" size={18} />} 
-                                        {isGenerating ? 'Generando PDF...' : 'Descargar PDF'}
+                                        {isGenerating ? 'Creando PDF...' : 'Descargar PDF'}
                                     </button>
                                 </div>
                             </div>
@@ -414,43 +413,43 @@
                             <div id="book-content" className="max-w-[210mm] mx-auto mt-16 print:mt-0 print:w-full">
                                 
                                 {/* PORTADA */}
-                                <div className="pdf-page-size relative bg-slate-900 text-white overflow-hidden shadow-2xl mb-10 print:shadow-none print:mb-0 print-bg">
+                                <div className="pdf-page-size relative bg-slate-900 text-white overflow-hidden shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
                                     <div className="absolute inset-0">
-                                        <img src={book.style.coverImage} alt="Cover" className="w-full h-full object-cover opacity-60" crossOrigin="anonymous" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/50"></div>
+                                        <img src={book.style.coverImage} alt="Cover" className="w-full h-full object-cover opacity-80" crossOrigin="anonymous" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-slate-900/40"></div>
                                     </div>
 
                                     <div className="relative z-10 h-full flex flex-col justify-between p-16">
-                                        <div className="border-t-2 border-white/30 w-full pt-6">
-                                            <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-white/80">Una historia original</h2>
+                                        <div className="border-t-4 border-white/50 w-full pt-6">
+                                            <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-white/90 shadow-black drop-shadow-md">Historia Mágica</h2>
                                         </div>
 
                                         <div className="text-center">
-                                            <h1 className="text-7xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl">{book.title}</h1>
-                                            <p className="text-2xl font-['Playfair_Display'] italic opacity-90">{book.subtitle}</p>
+                                            <h1 className="text-6xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl text-white">{book.title}</h1>
+                                            <p className="text-3xl font-['Playfair_Display'] italic opacity-100 text-yellow-200 drop-shadow-lg">{book.subtitle}</p>
                                         </div>
 
                                         <div className="text-center pb-10">
-                                            <div className="inline-block border-2 border-white/30 px-8 py-3 rounded-sm backdrop-blur-sm">
-                                                <p className="text-xs font-bold tracking-widest uppercase mb-1 opacity-70">Escrito para</p>
-                                                <p className="text-2xl font-['Cinzel']">{book.author}</p>
-                                            </div>
-                                            <div className="mt-8 opacity-50 text-xs tracking-widest uppercase">
-                                                Edición Especial • solucionador.cl
+                                            <div className="inline-block border-4 border-white/50 px-10 py-4 rounded-xl backdrop-blur-md bg-white/10">
+                                                <p className="text-xs font-bold tracking-widest uppercase mb-1 opacity-90">Autor</p>
+                                                <p className="text-3xl font-['Cinzel']">{book.author}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* CRÉDITOS */}
-                                <div className="pdf-page-size bg-white flex flex-col justify-center items-center p-20 text-center shadow-2xl mb-10 print:shadow-none print:mb-0 print-bg">
-                                    <div className="max-w-md">
+                                <div className="pdf-page-size bg-white flex flex-col justify-center items-center p-20 text-center shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
+                                    <div className="max-w-md w-full">
                                         <div className="flex justify-center mb-8 text-slate-300">
                                             <Icon name="feather" size={40} />
                                         </div>
-                                        <p className="font-['Playfair_Display'] text-2xl italic text-slate-700 leading-loose mb-10">
+                                        
+                                        {/* FIX: break-word-fix aplicada aquí */}
+                                        <p className="font-['Playfair_Display'] text-2xl italic text-slate-700 leading-loose mb-10 break-word-fix">
                                             "{book.dedication}"
                                         </p>
+                                        
                                         <div className="w-16 h-1 bg-slate-200 mx-auto rounded-full"></div>
                                         <p className="mt-20 text-xs text-slate-400 uppercase tracking-widest">
                                             Este libro pertenece a la colección personal de {book.author}.
@@ -459,68 +458,68 @@
                                     </div>
                                 </div>
 
-                                {/* PÁGINAS */}
+                                {/* PÁGINAS DE HISTORIA */}
                                 {book.pages.map((page, index) => (
-                                    <div key={index} className={`pdf-page-size bg-white relative flex flex-col shadow-2xl mb-10 print:shadow-none print:mb-0 print-bg ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
+                                    <div key={index} className={`pdf-page-size bg-white relative flex flex-col shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
                                         
                                         <div className="w-full p-12 pb-0 flex justify-between items-center text-slate-300 font-['Cinzel'] text-xs tracking-widest uppercase">
                                             <span>{book.title}</span>
-                                            <span>Capítulo {index + 1}</span>
+                                            <span>Cap {index + 1}</span>
                                         </div>
 
-                                        <div className="flex-1 px-12 py-6 flex flex-col">
-                                            <h3 className={`text-2xl font-['Cinzel'] ${book.style.color} mb-6 border-b-2 border-slate-100 pb-2`}>
+                                        <div className="flex-1 px-12 py-6 flex flex-col w-full">
+                                            <h3 className={`text-3xl font-['Cinzel'] ${book.style.color} mb-6 border-b-2 border-slate-100 pb-2 w-full`}>
                                                 {page.title}
                                             </h3>
 
-                                            <p className="text-lg font-['Playfair_Display'] text-slate-800 leading-relaxed mb-6 text-justify">
-                                                <span className={`float-left text-5xl font-['Cinzel'] ${book.style.color} pr-3 leading-[0.8]`}>
+                                            <p className="text-xl font-['Playfair_Display'] text-slate-800 leading-relaxed mb-6 text-justify">
+                                                <span className={`float-left text-6xl font-['Cinzel'] ${book.style.color} pr-3 leading-[0.8]`}>
                                                     {page.text.charAt(0)}
                                                 </span>
                                                 {page.text.slice(1)}
                                             </p>
 
-                                            <div className="flex-1 border border-slate-200 bg-slate-50 p-2 rounded-sm relative max-h-[45%]">
-                                                <div className="h-full border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                                            <div className="flex-1 border-2 border-slate-100 bg-slate-50 p-2 rounded-xl relative w-full">
+                                                <div className="h-full border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden rounded-lg">
                                                     
-                                                    <div className="absolute top-0 left-0 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1">
+                                                    <div className="absolute top-0 left-0 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-br-lg">
                                                         Tu Turno de Ilustrar
                                                     </div>
 
-                                                    <div className="text-center z-10">
+                                                    <div className="text-center z-10 px-4">
                                                         <div className="flex justify-center mb-2 text-slate-300">
-                                                            <Icon name="pen-tool" size={24} />
+                                                            <Icon name="pen-tool" size={32} />
                                                         </div>
-                                                        <p className="font-['Lato'] font-bold text-slate-500 text-base uppercase tracking-wide">
+                                                        <p className="font-['Lato'] font-bold text-slate-500 text-lg uppercase tracking-wide">
                                                             {page.instruction}
                                                         </p>
                                                     </div>
 
-                                                    <div className="absolute bottom-[-10px] right-[-10px] opacity-5 text-slate-900 rotate-[-15deg]">
-                                                        {book.style.iconName === 'Anchor' ? <AnchorIcon width={150} height={150} /> : <Icon name={book.style.iconName.toLowerCase()} size={150} />}
+                                                    <div className="absolute bottom-[-20px] right-[-20px] opacity-10 text-slate-900 rotate-[-15deg]">
+                                                        {book.style.iconName === 'Anchor' ? <AnchorIcon width={180} height={180} /> : <Icon name={book.style.iconName.toLowerCase()} size={180} />}
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="w-full p-12 pt-0 flex justify-center">
-                                            <span className="font-['Cinzel'] text-slate-400 font-bold">{index + 1}</span>
+                                        <div className="w-full p-8 pt-0 flex justify-center text-slate-300 font-bold">
+                                            {index + 1}
                                         </div>
 
                                     </div>
                                 ))}
 
                                 {/* CONTRAPORTADA */}
-                                <div className="pdf-page-size bg-slate-900 text-slate-300 relative flex flex-col items-center justify-center text-center p-20 shadow-2xl mb-10 print:shadow-none print:mb-0 print-bg">
+                                <div className="pdf-page-size bg-slate-900 text-slate-300 relative flex flex-col items-center justify-center text-center p-20 shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
                                     <div className="max-w-lg border-y border-white/20 py-12">
-                                        <h2 className="text-4xl font-['Cinzel'] text-white mb-6">Fin de la Aventura</h2>
+                                        <h2 className="text-4xl font-['Cinzel'] text-white mb-6">Fin</h2>
                                         <p className="font-['Playfair_Display'] text-lg italic opacity-80 mb-8">
                                             "La imaginación es el único mapa que necesitas para explorar lo desconocido."
                                         </p>
                                         <div className="flex justify-center gap-4 opacity-50">
-                                            <Icon name="star" size={16} />
-                                            <Icon name="star" size={16} />
-                                            <Icon name="star" size={16} />
+                                            <Icon name="star" size={20} />
+                                            <Icon name="star" size={20} />
+                                            <Icon name="star" size={20} />
                                         </div>
                                     </div>
 
