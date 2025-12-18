@@ -8,51 +8,83 @@
     <!-- 1. Estilos: Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 2. Librería para generar PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <!-- 3. React y Babel -->
+    <!-- 2. React y Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 4. Iconos Lucide -->
+    <!-- 3. Iconos Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Fuentes Bonitas -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
         
-        /* Ajustes específicos para impresión y PDF */
+        /* --- ESTILOS DE IMPRESIÓN NATIVOS (LA SOLUCIÓN REAL) --- */
         @media print {
-            @page { margin: 0; size: A4; }
-            body { -webkit-print-color-adjust: exact; background: white; }
-            .no-print { display: none !important; }
-            .print-bg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-        
-        /* CORRECCIÓN: Tamaño A4 exacto con overflow hidden para evitar cortes */
-        .pdf-page-size {
-            width: 210mm;
-            height: 296mm; /* 296mm para evitar la hoja en blanco extra */
-            overflow: hidden; 
-            background-color: white;
-            margin: 0 auto;
-            page-break-after: always;
-            position: relative;
-            box-sizing: border-box; /* Importante para que el padding no aumente el tamaño */
+            @page {
+                size: A4 portrait;
+                margin: 0; /* Eliminamos márgenes del navegador para controlar todo nosotros */
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            /* Forzar salto de página */
+            .print-page {
+                break-after: page;
+                page-break-after: always;
+                width: 210mm;
+                height: 296mm; /* 1mm menos para evitar hoja extra */
+                overflow: hidden;
+                position: relative;
+            }
+            /* Evitar saltos dentro de elementos */
+            .no-break {
+                break-inside: avoid;
+            }
         }
 
-        /* CORRECCIÓN: Romper palabras largas */
-        .break-word-fix {
-            overflow-wrap: break-word;
+        /* Estilos generales */
+        .print-page {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            margin: 0 auto 2rem auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        @media screen {
+            .print-page {
+                border: 1px solid #e5e7eb;
+            }
+        }
+
+        /* Contenedor seguro para evitar cortes */
+        .safe-zone {
+            padding: 20mm; /* Margen de seguridad de 2cm a cada lado */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Ajuste de textos largos */
+        .break-text {
             word-wrap: break-word;
-            word-break: break-word;
+            overflow-wrap: break-word;
             hyphens: auto;
         }
 
         img { max-width: 100%; }
-        
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -91,7 +123,6 @@
 
         function App() {
             const [step, setStep] = useState('form');
-            const [isGenerating, setIsGenerating] = useState(false);
 
             const [formData, setFormData] = useState({
                 childName: '',
@@ -129,34 +160,8 @@
                 setTimeout(() => window.lucide && window.lucide.createIcons(), 100);
             };
 
-            const handleDownloadPDF = async () => {
-                setIsGenerating(true);
-                const element = document.getElementById('book-content');
-                
-                // Configuración optimizada para evitar cortes laterales
-                const opt = {
-                    margin: [0, 0, 0, 0], // Sin márgenes externos del PDF, manejamos padding interno
-                    filename: `Cuento-${formData.childName}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2, 
-                        useCORS: true, 
-                        logging: false,
-                        scrollY: 0,
-                        windowWidth: 794 // Ancho exacto A4 en px a 96dpi (aprox) para alinear
-                    },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-
-                try {
-                    await html2pdf().set(opt).from(element).save();
-                } catch (err) {
-                    console.error("Error PDF:", err);
-                    alert("Error generando PDF. Intenta imprimir manualmente.");
-                    window.print();
-                } finally {
-                    setIsGenerating(false);
-                }
+            const handlePrint = () => {
+                window.print();
             };
 
             const generateProfessionalStory = () => {
@@ -260,7 +265,7 @@
                                         <span className="font-bold tracking-widest uppercase text-sm">Configuración</span>
                                     </div>
                                     <div className="flex gap-2 text-xs opacity-50">
-                                        <span>V 7.0 (Márgenes Seguros)</span>
+                                        <span>V 8.0 (Native Print)</span>
                                     </div>
                                 </div>
 
@@ -319,7 +324,7 @@
                                         </h3>
 
                                         <div>
-                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Tema de Portada (Estilo Infantil)</label>
+                                            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Tema de Portada</label>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {['bosque', 'espacio', 'fantasia', 'oceano'].map(t => (
                                                     <button 
@@ -401,34 +406,32 @@
                                 </button>
                                 <div className="flex items-center gap-4">
                                     <button 
-                                        onClick={handleDownloadPDF} 
-                                        disabled={isGenerating}
-                                        className={`${isGenerating ? 'bg-slate-500' : 'bg-slate-900 hover:bg-slate-700'} text-white px-6 py-2 rounded-full font-bold transition flex items-center gap-2 shadow-lg`}
+                                        onClick={handlePrint}
+                                        className="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold transition flex items-center gap-2 shadow-lg"
                                     >
-                                        {isGenerating ? <Icon name="loader-2" className="animate-spin" size={18}/> : <Icon name="download" size={18} />} 
-                                        {isGenerating ? 'Creando PDF...' : 'Descargar PDF'}
+                                        <Icon name="printer" size={18}/>
+                                        Imprimir / Guardar PDF
                                     </button>
                                 </div>
                             </div>
 
-                            <div id="book-content" className="max-w-[210mm] mx-auto mt-16 print:mt-0 print:w-full">
+                            <div className="max-w-[210mm] mx-auto mt-16 print:mt-0 print:w-full">
                                 
                                 {/* PORTADA */}
-                                <div className="pdf-page-size relative bg-slate-900 text-white overflow-hidden shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
+                                <div className="print-page relative bg-slate-900 text-white shadow-2xl mb-8 print:shadow-none print:mb-0">
                                     <div className="absolute inset-0">
-                                        <img src={book.style.coverImage} alt="Cover" className="w-full h-full object-cover opacity-80" crossOrigin="anonymous" />
+                                        <img src={book.style.coverImage} alt="Cover" className="w-full h-full object-cover opacity-80" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-slate-900/40"></div>
                                     </div>
 
-                                    {/* FIX: Aumenté el padding horizontal a px-24 para centrar y alejar de bordes */}
-                                    <div className="relative z-10 h-full flex flex-col justify-between p-24">
+                                    <div className="safe-zone relative z-10">
                                         <div className="border-t-4 border-white/50 w-full pt-6">
                                             <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-white/90 shadow-black drop-shadow-md">Historia Mágica</h2>
                                         </div>
 
-                                        <div className="text-center">
-                                            <h1 className="text-6xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl text-white break-words">{book.title}</h1>
-                                            <p className="text-3xl font-['Playfair_Display'] italic opacity-100 text-yellow-200 drop-shadow-lg break-words">{book.subtitle}</p>
+                                        <div className="text-center my-auto">
+                                            <h1 className="text-5xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl text-white break-text">{book.title}</h1>
+                                            <p className="text-2xl font-['Playfair_Display'] italic opacity-100 text-yellow-200 drop-shadow-lg break-text">{book.subtitle}</p>
                                         </div>
 
                                         <div className="text-center pb-10">
@@ -441,92 +444,97 @@
                                 </div>
 
                                 {/* CRÉDITOS */}
-                                <div className="pdf-page-size bg-white flex flex-col justify-center items-center p-24 text-center shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
-                                    <div className="max-w-md w-full">
-                                        <div className="flex justify-center mb-8 text-slate-300">
-                                            <Icon name="feather" size={40} />
+                                <div className="print-page bg-white shadow-2xl mb-8 print:shadow-none print:mb-0">
+                                    <div className="safe-zone flex flex-col justify-center items-center text-center">
+                                        <div className="max-w-md w-full">
+                                            <div className="flex justify-center mb-8 text-slate-300">
+                                                <Icon name="feather" size={40} />
+                                            </div>
+                                            
+                                            <p className="font-['Playfair_Display'] text-xl italic text-slate-700 leading-loose mb-10 break-text px-8">
+                                                "{book.dedication}"
+                                            </p>
+                                            
+                                            <div className="w-16 h-1 bg-slate-200 mx-auto rounded-full"></div>
+                                            <p className="mt-20 text-xs text-slate-400 uppercase tracking-widest">
+                                                Este libro pertenece a la colección personal de {book.author}.
+                                                <br/>Impreso el {new Date().toLocaleDateString()}
+                                            </p>
                                         </div>
-                                        
-                                        <p className="font-['Playfair_Display'] text-2xl italic text-slate-700 leading-loose mb-10 break-word-fix">
-                                            "{book.dedication}"
-                                        </p>
-                                        
-                                        <div className="w-16 h-1 bg-slate-200 mx-auto rounded-full"></div>
-                                        <p className="mt-20 text-xs text-slate-400 uppercase tracking-widest">
-                                            Este libro pertenece a la colección personal de {book.author}.
-                                            <br/>Impreso el {new Date().toLocaleDateString()}
-                                        </p>
                                     </div>
                                 </div>
 
                                 {/* PÁGINAS DE HISTORIA */}
                                 {book.pages.map((page, index) => (
-                                    <div key={index} className={`pdf-page-size bg-white relative flex flex-col shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
-                                        
-                                        {/* FIX: Padding aumentado a px-20 para alejar textos de los bordes laterales */}
-                                        <div className="w-full px-20 py-12 pb-0 flex justify-between items-center text-slate-300 font-['Cinzel'] text-xs tracking-widest uppercase">
-                                            <span className="truncate max-w-[200px]">{book.title}</span>
-                                            <span>Cap {index + 1}</span>
-                                        </div>
+                                    <div key={index} className="print-page bg-white shadow-2xl mb-8 print:shadow-none print:mb-0">
+                                        <div className="safe-zone">
+                                            
+                                            <div className="w-full flex justify-between items-center text-slate-300 font-['Cinzel'] text-xs tracking-widest uppercase border-b pb-4 mb-4">
+                                                <span className="truncate max-w-[200px]">{book.title}</span>
+                                                <span>Cap {index + 1}</span>
+                                            </div>
 
-                                        <div className="flex-1 px-20 py-6 flex flex-col w-full">
-                                            <h3 className={`text-3xl font-['Cinzel'] ${book.style.color} mb-6 border-b-2 border-slate-100 pb-2 w-full`}>
-                                                {page.title}
-                                            </h3>
+                                            <div className="flex-1 flex flex-col justify-center">
+                                                <h3 className={`text-2xl font-['Cinzel'] ${book.style.color} mb-4 pb-2 w-full`}>
+                                                    {page.title}
+                                                </h3>
 
-                                            <p className="text-xl font-['Playfair_Display'] text-slate-800 leading-relaxed mb-6 text-justify">
-                                                <span className={`float-left text-6xl font-['Cinzel'] ${book.style.color} pr-3 leading-[0.8]`}>
-                                                    {page.text.charAt(0)}
-                                                </span>
-                                                {page.text.slice(1)}
-                                            </p>
+                                                <p className="text-lg font-['Playfair_Display'] text-slate-800 leading-relaxed mb-6 text-justify">
+                                                    <span className={`float-left text-5xl font-['Cinzel'] ${book.style.color} pr-3 leading-[0.8]`}>
+                                                        {page.text.charAt(0)}
+                                                    </span>
+                                                    {page.text.slice(1)}
+                                                </p>
 
-                                            <div className="flex-1 border-2 border-slate-100 bg-slate-50 p-2 rounded-xl relative w-full">
-                                                <div className="h-full border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden rounded-lg">
-                                                    
-                                                    <div className="absolute top-0 left-0 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-br-lg">
-                                                        Tu Turno de Ilustrar
-                                                    </div>
-
-                                                    <div className="text-center z-10 px-4">
-                                                        <div className="flex justify-center mb-2 text-slate-300">
-                                                            <Icon name="pen-tool" size={32} />
+                                                <div className="flex-1 border-2 border-slate-100 bg-slate-50 p-2 rounded-xl relative w-full min-h-[300px]">
+                                                    <div className="h-full border-2 border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden rounded-lg">
+                                                        
+                                                        <div className="absolute top-0 left-0 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-br-lg">
+                                                            Tu Turno de Ilustrar
                                                         </div>
-                                                        <p className="font-['Lato'] font-bold text-slate-500 text-lg uppercase tracking-wide">
-                                                            {page.instruction}
-                                                        </p>
-                                                    </div>
 
-                                                    <div className="absolute bottom-[-20px] right-[-20px] opacity-10 text-slate-900 rotate-[-15deg]">
-                                                        {book.style.iconName === 'Anchor' ? <AnchorIcon width={180} height={180} /> : <Icon name={book.style.iconName.toLowerCase()} size={180} />}
+                                                        <div className="text-center z-10 px-4">
+                                                            <div className="flex justify-center mb-2 text-slate-300">
+                                                                <Icon name="pen-tool" size={32} />
+                                                            </div>
+                                                            <p className="font-['Lato'] font-bold text-slate-500 text-base uppercase tracking-wide">
+                                                                {page.instruction}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="absolute bottom-[-20px] right-[-20px] opacity-10 text-slate-900 rotate-[-15deg]">
+                                                            {book.style.iconName === 'Anchor' ? <AnchorIcon width={150} height={150} /> : <Icon name={book.style.iconName.toLowerCase()} size={150} />}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="w-full p-8 pt-0 flex justify-center text-slate-300 font-bold">
-                                            {index + 1}
-                                        </div>
+                                            <div className="w-full pt-4 flex justify-center text-slate-300 font-bold text-sm">
+                                                {index + 1}
+                                            </div>
 
+                                        </div>
                                     </div>
                                 ))}
 
                                 {/* CONTRAPORTADA */}
-                                <div className="pdf-page-size bg-slate-900 text-slate-300 relative flex flex-col items-center justify-center text-center p-24 shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
-                                    <div className="max-w-lg border-y border-white/20 py-12">
-                                        <h2 className="text-4xl font-['Cinzel'] text-white mb-6">Fin</h2>
-                                        <p className="font-['Playfair_Display'] text-lg italic opacity-80 mb-8">
-                                            "La imaginación es el único mapa que necesitas para explorar lo desconocido."
-                                        </p>
-                                        <div className="flex justify-center gap-4 opacity-50">
-                                            <Icon name="star" size={20} />
-                                            <Icon name="star" size={20} />
-                                            <Icon name="star" size={20} />
+                                <div className="print-page bg-slate-900 text-slate-300 shadow-2xl mb-8 print:shadow-none print:mb-0">
+                                    <div className="safe-zone flex flex-col justify-center items-center text-center">
+                                        <div className="max-w-lg border-y border-white/20 py-12 px-8">
+                                            <h2 className="text-4xl font-['Cinzel'] text-white mb-6">Fin</h2>
+                                            <p className="font-['Playfair_Display'] text-lg italic opacity-80 mb-8">
+                                                "La imaginación es el único mapa que necesitas para explorar lo desconocido."
+                                            </p>
+                                            <div className="flex justify-center gap-4 opacity-50">
+                                                <Icon name="star" size={20} />
+                                                <Icon name="star" size={20} />
+                                                <Icon name="star" size={20} />
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="absolute bottom-16 opacity-40">
-                                        <p className="text-[10px] uppercase tracking-[0.3em]">Creado por solucionador.cl</p>
+                                        <div className="absolute bottom-16 opacity-40">
+                                            <p className="text-[10px] uppercase tracking-[0.3em]">Creado por solucionador.cl</p>
+                                        </div>
                                     </div>
                                 </div>
 
