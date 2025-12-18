@@ -1,0 +1,451 @@
+import React, { useState } from 'react';
+import { 
+  Book, Printer, Sparkles, User, Palette, Dog, 
+  Map, Rocket, Castle, Crown, Star, Heart, 
+  Feather, PenTool, ArrowRight, CheckCircle, Wand2
+} from 'lucide-react';
+
+export default function App() {
+  const [step, setStep] = useState('form');
+  
+  // FORMULARIO DESGLOSADO PARA MAYOR INTELIGENCIA GRAMATICAL
+  const [formData, setFormData] = useState({
+    childName: '',
+    childGender: 'o', // 'o' (niño), 'a' (niña)
+    age: '',
+    
+    // Desglose del compañero para evitar "un perro llamado firulais" pegado a la fuerza
+    companionType: '', // Ej: Dragón, Perro, Gato
+    companionName: '', // Ej: Furia, Bola de Nieve
+    
+    // Desglose de la trama
+    theme: 'bosque', // bosque, espacio, fantasia, oceano
+    missionObject: '', // Ej: La Espada Perdida, El Pastel Gigante (Sustantivo)
+    missionAction: '', // Ej: Encontrar, Rescatar, Preparar (Verbo Infinitivo)
+    
+    dedication: ''
+  });
+
+  const [book, setBook] = useState(null);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.childName || !formData.missionObject) {
+      alert("Por favor completa los campos principales.");
+      return;
+    }
+    const story = generateProfessionalStory();
+    setBook(story);
+    setStep('preview');
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // --- MOTOR NARRATIVO INTELIGENTE ---
+  const generateProfessionalStory = () => {
+    const { childName, childGender, age, companionType, companionName, theme, missionObject, missionAction, dedication } = formData;
+    
+    // Ayudantes gramaticales
+    const o_a = childGender === 'a' ? 'a' : 'o'; 
+    const el_la = childGender === 'a' ? 'la' : 'el'; 
+    const un_una = childGender === 'a' ? 'una' : 'un';
+    const nino_nina = childGender === 'a' ? 'niña' : 'niño';
+
+    // Configuración visual según tema (Imágenes reales de Unsplash)
+    const themes = {
+      bosque: {
+        coverImage: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop",
+        color: "text-green-900",
+        bg: "bg-green-50",
+        border: "border-green-800",
+        icon: Map
+      },
+      espacio: {
+        coverImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2560&auto=format&fit=crop",
+        color: "text-indigo-900",
+        bg: "bg-slate-50",
+        border: "border-indigo-900",
+        icon: Rocket
+      },
+      fantasia: {
+        coverImage: "https://images.unsplash.com/photo-1599739291060-4578e77dac5d?q=80&w=2560&auto=format&fit=crop",
+        color: "text-purple-900",
+        bg: "bg-purple-50",
+        border: "border-purple-800",
+        icon: Castle
+      },
+      oceano: {
+        coverImage: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?q=80&w=2560&auto=format&fit=crop",
+        color: "text-blue-900",
+        bg: "bg-blue-50",
+        border: "border-blue-800",
+        icon: AnchorIcon
+      }
+    };
+
+    const currentTheme = themes[theme];
+
+    // Construcción de la historia página por página
+    const pages = [
+      // PÁGINA 1: INTRODUCCIÓN
+      {
+        title: "El Llamado de la Aventura",
+        text: `En un lugar donde los sueños se mezclan con la realidad, vivía ${un_una} ${nino_nina} de ${age} años llamad${o_a} ${childName}. No era ${un_una} ${nino_nina} común; tenía el don de ver la magia donde otros solo veían lo normal. Una mañana, mientras el viento susurraba secretos, ${childName} encontró una carta antigua. La carta decía que el mundo necesitaba a alguien valiente para una misión única: ${missionAction.toLowerCase()} ${missionObject}.`,
+        instruction: `Dibuja a ${childName} leyendo la carta misteriosa con cara de sorpresa.`
+      },
+      // PÁGINA 2: EL ENCUENTRO (Gramática Corregida)
+      {
+        title: "Un Aliado Inesperado",
+        text: `${childName} sabía que no podía hacer esto sol${o_a}. De repente, entre las sombras, apareció una figura. ¡Era un ${companionType}! Pero no cualquiera, este tenía una mirada inteligente. —"Me llamo ${companionName}", dijo la criatura con voz amable. —"He estado esperando a alguien digno para buscar ${missionObject}. ¿Vamos juntos?". ${childName} asintió con entusiasmo.`,
+        instruction: `Dibuja al ${companionType} llamado ${companionName} saludando a ${childName}.`
+      },
+      // PÁGINA 3: EL VIAJE
+      {
+        title: "Hacia lo Desconocido",
+        text: `Juntos, emprendieron el viaje. El camino hacia ${missionObject} no era fácil. Tuvieron que cruzar paisajes increíbles donde los colores eran más brillantes de lo normal. ${companionName}, el ${companionType}, usaba su olfato y sabiduría para guiarles, mientras ${childName} usaba su ingenio para resolver los acertijos del sendero.`,
+        instruction: "Dibuja el paisaje fantástico por donde caminan (árboles gigantes, estrellas o castillos)."
+      },
+      // PÁGINA 4: EL OBSTÁCULO
+      {
+        title: "La Gran Prueba",
+        text: `Justo cuando creían estar cerca, un obstáculo gigante les bloqueó el paso. Parecía imposible continuar. ${childName} sintió miedo por un segundo. "¿Y si no soy lo suficientemente fuerte?", pensó. Pero ${companionName} le recordó: "La verdadera fuerza no está en los músculos, sino en el corazón".`,
+        instruction: "Dibuja el obstáculo gigante (una montaña, un monstruo o un río ancho)."
+      },
+      // PÁGINA 5: LA RESOLUCIÓN
+      {
+        title: "El Poder de Creer",
+        text: `${childName} cerró los ojos y recordó por qué había comenzado esta aventura: quería ${missionAction.toLowerCase()} ${missionObject} más que nada en el mundo. Con un grito de valentía, superó el obstáculo. La magia reaccionó a su coraje, abriendo el camino final.`,
+        instruction: `Dibuja a ${childName} usando su magia o fuerza para superar el problema.`
+      },
+      // PÁGINA 6: CLÍMAX
+      {
+        title: "Misión Cumplida",
+        text: `¡Allí estaba! Frente a sus ojos brillaba ${missionObject}. Era más hermoso de lo que imaginaban. ${childName} y ${companionName} celebraron bailando de alegría. Habían logrado lo imposible gracias a su amistad y valentía.`,
+        instruction: `¡Dibuja el momento en que encuentran ${missionObject}!`
+      }
+    ];
+
+    return {
+      title: `La Leyenda de ${childName}`,
+      subtitle: `Y la búsqueda de ${missionObject}`,
+      author: childName,
+      dedication: dedication || `Para ${childName}, protagonista de su propia historia.`,
+      style: currentTheme,
+      pages: pages
+    };
+  };
+
+  // Componente de Icono genérico para evitar errores
+  const AnchorIcon = (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-100 font-sans text-slate-900">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+        
+        @media print {
+          @page { margin: 0; size: A4; }
+          body { -webkit-print-color-adjust: exact; background: white; }
+          .no-print { display: none !important; }
+          .page-break { page-break-after: always; }
+          .print-container { width: 100%; height: 100%; }
+        }
+        
+        .book-shadow {
+          box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+            0 2px 4px -1px rgba(0, 0, 0, 0.06),
+            inset 20px 0 50px rgba(0,0,0,0.05); /* Efecto lomo de libro */
+        }
+      `}</style>
+
+      {/* --- FORMULARIO DE DATOS --- */}
+      {step === 'form' && (
+        <div className="max-w-4xl mx-auto py-12 px-6 no-print">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-['Cinzel'] text-slate-900 mb-4">Editor de Cuentos Pro</h1>
+            <p className="text-lg text-slate-600 font-['Lato']">Crea un libro real, diseñado para imprimir.</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+            <div className="bg-slate-900 p-6 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <Book className="text-yellow-500" />
+                <span className="font-bold tracking-widest uppercase text-sm">Configuración de la Historia</span>
+              </div>
+              <div className="flex gap-2 text-xs opacity-50">
+                <span>V 4.0</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+              
+              {/* COLUMNA 1: EL PROTAGONISTA */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-['Playfair_Display'] font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                  <User size={20} /> El Protagonista
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre</label>
+                    <input required type="text" name="childName" placeholder="Ej: Sofía" value={formData.childName} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Edad</label>
+                    <input type="number" name="age" placeholder="Ej: 8" value={formData.age} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Género</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="childGender" value="o" checked={formData.childGender === 'o'} onChange={handleInputChange} className="accent-slate-900" />
+                      <span>Niño</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="childGender" value="a" checked={formData.childGender === 'a'} onChange={handleInputChange} className="accent-slate-900" />
+                      <span>Niña</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <h3 className="text-xl font-['Playfair_Display'] font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                    <Dog size={20} /> El Compañero
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Tipo de Criatura</label>
+                      <input required type="text" name="companionType" placeholder="Ej: Zorro / Robot" value={formData.companionType} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre</label>
+                      <input required type="text" name="companionName" placeholder="Ej: Rusty" value={formData.companionName} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 italic">Ej: "Apareció un [Zorro] llamado [Rusty]"</p>
+                </div>
+              </div>
+
+              {/* COLUMNA 2: LA TRAMA */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-['Playfair_Display'] font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                  <Wand2 size={20} /> La Aventura
+                </h3>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Estilo Visual</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['bosque', 'espacio', 'fantasia', 'oceano'].map(t => (
+                      <button 
+                        key={t}
+                        type="button"
+                        onClick={() => setFormData(prev => ({...prev, theme: t}))}
+                        className={`p-3 rounded-lg border-2 capitalize text-sm font-bold transition ${formData.theme === t ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-100 hover:border-slate-300'}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <label className="block text-xs font-bold uppercase text-yellow-800 mb-2">Construye la Misión</label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm text-slate-600">La misión es...</span>
+                    <input 
+                      type="text" 
+                      name="missionAction" 
+                      placeholder="Verbo (Ej: encontrar)" 
+                      value={formData.missionAction} 
+                      onChange={handleInputChange} 
+                      className="flex-1 border-b-2 border-yellow-400 bg-transparent py-1 px-2 focus:outline-none font-bold text-slate-900"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-600">...el/la/los</span>
+                    <input 
+                      type="text" 
+                      name="missionObject" 
+                      placeholder="Objeto (Ej: gema perdida)" 
+                      value={formData.missionObject} 
+                      onChange={handleInputChange} 
+                      className="flex-1 border-b-2 border-yellow-400 bg-transparent py-1 px-2 focus:outline-none font-bold text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Dedicatoria (Opcional)</label>
+                  <textarea name="dedication" rows="2" placeholder="Para mi persona favorita..." value={formData.dedication} onChange={handleInputChange} className="w-full border-2 border-slate-200 rounded-lg p-3 font-medium focus:border-slate-900 outline-none" />
+                </div>
+
+                <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-lg font-bold text-lg shadow-lg transform hover:-translate-y-1 transition flex items-center justify-center gap-3 mt-4">
+                  <Sparkles /> Generar Libro PDF
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- VISTA PREVIA DEL LIBRO --- */}
+      {step === 'preview' && book && (
+        <div className="bg-slate-300 min-h-screen py-10 print:bg-white print:py-0">
+          
+          {/* BARRA DE HERRAMIENTAS (NO IMPRIMIR) */}
+          <div className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur border-b border-slate-200 p-4 flex justify-between items-center z-50 no-print shadow-sm">
+            <button onClick={() => setStep('form')} className="text-slate-500 font-bold hover:text-slate-900 flex items-center gap-2 text-sm">
+              <ArrowRight className="rotate-180" size={16} /> Editar Datos
+            </button>
+            <div className="flex items-center gap-4">
+               <span className="text-xs font-bold uppercase bg-slate-100 px-3 py-1 rounded text-slate-500">Vista Previa A4</span>
+               <button onClick={handlePrint} className="bg-slate-900 text-white px-6 py-2 rounded-full font-bold hover:bg-slate-700 transition flex items-center gap-2 shadow-lg">
+                 <Printer size={18} /> Imprimir / Guardar PDF
+               </button>
+            </div>
+          </div>
+
+          <div className="max-w-[210mm] mx-auto mt-16 print:mt-0 print:w-full">
+            
+            {/* --- 1. PORTADA PROFESIONAL --- */}
+            <div className="print-page w-[210mm] h-[297mm] relative bg-slate-900 text-white overflow-hidden shadow-2xl mb-10 print:shadow-none print:mb-0 page-break">
+              {/* Imagen de Fondo Full Bleed */}
+              <div className="absolute inset-0">
+                <img src={book.style.coverImage} alt="Cover" className="w-full h-full object-cover opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/50"></div>
+              </div>
+
+              {/* Contenido Portada */}
+              <div className="relative z-10 h-full flex flex-col justify-between p-16">
+                <div className="border-t-2 border-white/30 w-full pt-6">
+                  <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-white/80">Una historia original</h2>
+                </div>
+
+                <div className="text-center">
+                  <h1 className="text-7xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl">{book.title}</h1>
+                  <p className="text-2xl font-['Playfair_Display'] italic opacity-90">{book.subtitle}</p>
+                </div>
+
+                <div className="text-center pb-10">
+                  <div className="inline-block border-2 border-white/30 px-8 py-3 rounded-sm backdrop-blur-sm">
+                    <p className="text-xs font-bold tracking-widest uppercase mb-1 opacity-70">Escrito para</p>
+                    <p className="text-2xl font-['Cinzel']">{book.author}</p>
+                  </div>
+                  <div className="mt-8 opacity-50 text-xs tracking-widest uppercase">
+                    Edición Especial • solucionador.cl
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* --- 2. PÁGINA DE CRÉDITOS / DEDICATORIA --- */}
+            <div className="print-page w-[210mm] h-[297mm] bg-white flex flex-col justify-center items-center p-20 text-center shadow-2xl mb-10 print:shadow-none print:mb-0 page-break">
+               <div className="max-w-md">
+                 <Feather className="mx-auto mb-8 text-slate-300" size={40} />
+                 <p className="font-['Playfair_Display'] text-2xl italic text-slate-700 leading-loose mb-10">
+                   "{book.dedication}"
+                 </p>
+                 <div className="w-16 h-1 bg-slate-200 mx-auto rounded-full"></div>
+                 <p className="mt-20 text-xs text-slate-400 uppercase tracking-widest">
+                   Este libro pertenece a la colección personal de {book.author}.
+                   <br/>Impreso el {new Date().toLocaleDateString()}
+                 </p>
+               </div>
+            </div>
+
+            {/* --- 3. PÁGINAS DE LA HISTORIA (Diseño Editorial) --- */}
+            {book.pages.map((page, index) => (
+              <div key={index} className={`print-page w-[210mm] h-[297mm] bg-white relative flex flex-col page-break shadow-2xl mb-10 print:shadow-none print:mb-0 ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
+                
+                {/* Encabezado de Página */}
+                <div className="w-full p-12 pb-0 flex justify-between items-center text-slate-300 font-['Cinzel'] text-xs tracking-widest uppercase">
+                  <span>{book.title}</span>
+                  <span>Capítulo {index + 1}</span>
+                </div>
+
+                {/* Contenido Principal */}
+                <div className="flex-1 px-16 py-8 flex flex-col">
+                  {/* Título del Capítulo */}
+                  <h3 className={`text-3xl font-['Cinzel'] ${book.style.color} mb-8 border-b-2 border-slate-100 pb-4`}>
+                    {page.title}
+                  </h3>
+
+                  {/* Texto Narrativo */}
+                  <p className="text-xl font-['Playfair_Display'] text-slate-800 leading-relaxed mb-10 text-justify">
+                    {/* Letra Capital */}
+                    <span className={`float-left text-6xl font-['Cinzel'] ${book.style.color} pr-3 leading-[0.8]`}>
+                      {page.text.charAt(0)}
+                    </span>
+                    {page.text.slice(1)}
+                  </p>
+
+                  {/* Marco de Actividad / Dibujo (Estilo Elegante) */}
+                  <div className="flex-1 border border-slate-200 bg-slate-50 p-3 rounded-sm relative">
+                    <div className="h-full border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-8 relative overflow-hidden">
+                      
+                      {/* Etiqueta de Instrucción */}
+                      <div className="absolute top-0 left-0 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1">
+                        Tu Turno de Ilustrar
+                      </div>
+
+                      <div className="text-center z-10">
+                        <PenTool className="mx-auto mb-3 text-slate-300" size={32} />
+                        <p className="font-['Lato'] font-bold text-slate-500 text-lg uppercase tracking-wide">
+                          {page.instruction}
+                        </p>
+                      </div>
+
+                      {/* Marca de agua decorativa */}
+                      <div className="absolute bottom-[-20px] right-[-20px] opacity-5 text-slate-900 rotate-[-15deg]">
+                         <book.style.icon size={200} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pie de Página */}
+                <div className="w-full p-12 pt-0 flex justify-center">
+                  <span className="font-['Cinzel'] text-slate-400 font-bold">{index + 1}</span>
+                </div>
+
+              </div>
+            ))}
+
+            {/* --- 4. CONTRAPORTADA --- */}
+            <div className="print-page w-[210mm] h-[297mm] bg-slate-900 text-slate-300 relative flex flex-col items-center justify-center text-center p-20 shadow-2xl mb-10 print:shadow-none print:mb-0">
+               <div className="max-w-lg border-y border-white/20 py-12">
+                 <h2 className="text-4xl font-['Cinzel'] text-white mb-6">Fin de la Aventura</h2>
+                 <p className="font-['Playfair_Display'] text-lg italic opacity-80 mb-8">
+                   "La imaginación es el único mapa que necesitas para explorar lo desconocido."
+                 </p>
+                 <div className="flex justify-center gap-4 opacity-50">
+                   <Star size={16} />
+                   <Star size={16} />
+                   <Star size={16} />
+                 </div>
+               </div>
+
+               <div className="absolute bottom-16 opacity-40">
+                 <p className="text-[10px] uppercase tracking-[0.3em]">Creado por solucionador.cl</p>
+               </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
