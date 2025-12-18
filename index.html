@@ -31,18 +31,19 @@
             .print-bg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
         
-        /* CORRECCIÓN: Altura reducida a 296mm para evitar página en blanco extra */
+        /* CORRECCIÓN: Tamaño A4 exacto con overflow hidden para evitar cortes */
         .pdf-page-size {
             width: 210mm;
-            height: 296mm; 
+            height: 296mm; /* 296mm para evitar la hoja en blanco extra */
             overflow: hidden; 
             background-color: white;
             margin: 0 auto;
             page-break-after: always;
             position: relative;
+            box-sizing: border-box; /* Importante para que el padding no aumente el tamaño */
         }
 
-        /* CORRECCIÓN: Romper palabras largas en dedicatoria */
+        /* CORRECCIÓN: Romper palabras largas */
         .break-word-fix {
             overflow-wrap: break-word;
             word-wrap: break-word;
@@ -132,8 +133,9 @@
                 setIsGenerating(true);
                 const element = document.getElementById('book-content');
                 
+                // Configuración optimizada para evitar cortes laterales
                 const opt = {
-                    margin: 0, 
+                    margin: [0, 0, 0, 0], // Sin márgenes externos del PDF, manejamos padding interno
                     filename: `Cuento-${formData.childName}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { 
@@ -141,7 +143,7 @@
                         useCORS: true, 
                         logging: false,
                         scrollY: 0,
-                        windowWidth: 800 
+                        windowWidth: 794 // Ancho exacto A4 en px a 96dpi (aprox) para alinear
                     },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
@@ -166,31 +168,30 @@
                 
                 const fullObject = `${missionArticle} ${missionObject}`;
 
-                // IMÁGENES ACTUALIZADAS: Más coloridas e infantiles (Ilustraciones/Vectores)
                 const themes = {
                     bosque: {
-                        coverImage: "https://images.unsplash.com/photo-1596277685603-0c3f0b4d445c?q=80&w=2560&auto=format&fit=crop", // Ilustración bosque
+                        coverImage: "https://images.unsplash.com/photo-1596277685603-0c3f0b4d445c?q=80&w=2560&auto=format&fit=crop", 
                         color: "text-green-900",
                         bg: "bg-green-50",
                         iconName: "Map",
                         accent: "border-green-800"
                     },
                     espacio: {
-                        coverImage: "https://images.unsplash.com/photo-1614728853911-c91807d93425?q=80&w=2560&auto=format&fit=crop", // Ilustración espacial colorida
+                        coverImage: "https://images.unsplash.com/photo-1614728853911-c91807d93425?q=80&w=2560&auto=format&fit=crop", 
                         color: "text-indigo-900",
                         bg: "bg-slate-50",
                         iconName: "Rocket",
                         accent: "border-indigo-900"
                     },
                     fantasia: {
-                        coverImage: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2560&auto=format&fit=crop", // Fantasía colorida
+                        coverImage: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2560&auto=format&fit=crop", 
                         color: "text-purple-900",
                         bg: "bg-purple-50",
                         iconName: "Castle",
                         accent: "border-purple-800"
                     },
                     oceano: {
-                        coverImage: "https://images.unsplash.com/photo-1560215758-c07a3f5b721e?q=80&w=2560&auto=format&fit=crop", // Pez colorido
+                        coverImage: "https://images.unsplash.com/photo-1560215758-c07a3f5b721e?q=80&w=2560&auto=format&fit=crop", 
                         color: "text-blue-900",
                         bg: "bg-blue-50",
                         iconName: "Anchor",
@@ -259,7 +260,7 @@
                                         <span className="font-bold tracking-widest uppercase text-sm">Configuración</span>
                                     </div>
                                     <div className="flex gap-2 text-xs opacity-50">
-                                        <span>V 6.0</span>
+                                        <span>V 7.0 (Márgenes Seguros)</span>
                                     </div>
                                 </div>
 
@@ -419,14 +420,15 @@
                                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-slate-900/40"></div>
                                     </div>
 
-                                    <div className="relative z-10 h-full flex flex-col justify-between p-16">
+                                    {/* FIX: Aumenté el padding horizontal a px-24 para centrar y alejar de bordes */}
+                                    <div className="relative z-10 h-full flex flex-col justify-between p-24">
                                         <div className="border-t-4 border-white/50 w-full pt-6">
                                             <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-white/90 shadow-black drop-shadow-md">Historia Mágica</h2>
                                         </div>
 
                                         <div className="text-center">
-                                            <h1 className="text-6xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl text-white">{book.title}</h1>
-                                            <p className="text-3xl font-['Playfair_Display'] italic opacity-100 text-yellow-200 drop-shadow-lg">{book.subtitle}</p>
+                                            <h1 className="text-6xl font-['Cinzel'] leading-tight mb-4 drop-shadow-2xl text-white break-words">{book.title}</h1>
+                                            <p className="text-3xl font-['Playfair_Display'] italic opacity-100 text-yellow-200 drop-shadow-lg break-words">{book.subtitle}</p>
                                         </div>
 
                                         <div className="text-center pb-10">
@@ -439,13 +441,12 @@
                                 </div>
 
                                 {/* CRÉDITOS */}
-                                <div className="pdf-page-size bg-white flex flex-col justify-center items-center p-20 text-center shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
+                                <div className="pdf-page-size bg-white flex flex-col justify-center items-center p-24 text-center shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
                                     <div className="max-w-md w-full">
                                         <div className="flex justify-center mb-8 text-slate-300">
                                             <Icon name="feather" size={40} />
                                         </div>
                                         
-                                        {/* FIX: break-word-fix aplicada aquí */}
                                         <p className="font-['Playfair_Display'] text-2xl italic text-slate-700 leading-loose mb-10 break-word-fix">
                                             "{book.dedication}"
                                         </p>
@@ -462,12 +463,13 @@
                                 {book.pages.map((page, index) => (
                                     <div key={index} className={`pdf-page-size bg-white relative flex flex-col shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
                                         
-                                        <div className="w-full p-12 pb-0 flex justify-between items-center text-slate-300 font-['Cinzel'] text-xs tracking-widest uppercase">
-                                            <span>{book.title}</span>
+                                        {/* FIX: Padding aumentado a px-20 para alejar textos de los bordes laterales */}
+                                        <div className="w-full px-20 py-12 pb-0 flex justify-between items-center text-slate-300 font-['Cinzel'] text-xs tracking-widest uppercase">
+                                            <span className="truncate max-w-[200px]">{book.title}</span>
                                             <span>Cap {index + 1}</span>
                                         </div>
 
-                                        <div className="flex-1 px-12 py-6 flex flex-col w-full">
+                                        <div className="flex-1 px-20 py-6 flex flex-col w-full">
                                             <h3 className={`text-3xl font-['Cinzel'] ${book.style.color} mb-6 border-b-2 border-slate-100 pb-2 w-full`}>
                                                 {page.title}
                                             </h3>
@@ -510,7 +512,7 @@
                                 ))}
 
                                 {/* CONTRAPORTADA */}
-                                <div className="pdf-page-size bg-slate-900 text-slate-300 relative flex flex-col items-center justify-center text-center p-20 shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
+                                <div className="pdf-page-size bg-slate-900 text-slate-300 relative flex flex-col items-center justify-center text-center p-24 shadow-2xl mb-0 print:shadow-none print:mb-0 print-bg">
                                     <div className="max-w-lg border-y border-white/20 py-12">
                                         <h2 className="text-4xl font-['Cinzel'] text-white mb-6">Fin</h2>
                                         <p className="font-['Playfair_Display'] text-lg italic opacity-80 mb-8">
